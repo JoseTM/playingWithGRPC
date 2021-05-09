@@ -1,0 +1,23 @@
+syntax="proto3";
+
+package calculatorpb;
+
+option go_package="./;calculatorpb";
+
+message Operators {
+   int32 operatorA = 1;
+   int32 operatorB = 2;
+}
+
+message CalculatorRequest {
+   Operators operators = 1;
+}
+
+message CalculatorResult {
+   int64 result = 1;
+}
+
+
+service CalculatorService{
+   rpc Add(CalculatorRequest) returns (CalculatorResult);
+}
