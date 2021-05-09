@@ -27,6 +27,10 @@ func main() {
 
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 
+	doUnary(c, req)
+}
+
+func doUnary(c calculatorpb.CalculatorServiceClient, req calculatorpb.CalculatorRequest) {
 	result, err := c.Add(context.Background(), &req)
 	if err != nil {
 		log.Fatalf("could not connect %v", err)
