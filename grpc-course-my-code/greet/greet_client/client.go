@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"../greetpb"
@@ -27,6 +28,7 @@ func main() {
 
 	myClient := client{}
 	myClient.doUnary(c)
+	myClient.doServerStream(c)
 
 }
 
@@ -44,4 +46,30 @@ func (*client) doUnary(c greetpb.GreetServiceClient) {
 	}
 
 	fmt.Printf("The result was %s \n", result.GetResult())
+}
+
+func (*client) doServerStream(c greetpb.GreetServiceClient) {
+	req := &greetpb.GreetingManyTimesRequest{
+		Greeting: &greetpb.Greeting{
+			FirstName: "Jose",
+			LastName:  "Trujillo",
+		},
+	}
+
+	result, err := c.GreetManyTimes(context.Background(), req)
+	if err != nil {
+		log.Fatalf("Could not connect with error %v", err)
+	}
+
+	for {
+		msg, err := result.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("somthing was wrong with response")
+		}
+		fmt.Printf("menssage stream: %s \n", msg.GetResult())
+	}
+
 }

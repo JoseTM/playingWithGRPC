@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 
 	"../calculatorpb"
 	"google.golang.org/grpc"
@@ -21,6 +22,27 @@ func (*server) Add(ctx context.Context, in *calculatorpb.CalculatorRequest) (*ca
 	}
 
 	return &result, nil
+}
+
+func (*server) PrimeDecomposition(req *calculatorpb.PrimeDecompositionRequest, stream calculatorpb.CalculatorService_PrimeDecompositionServer) error {
+	primeNumber := req.GetOperator()
+	fmt.Printf("prime decomposition in progress to %v \n", primeNumber)
+
+	i := int64(2)
+	for primeNumber > 1 {
+		if primeNumber%i == 0 {
+			result := calculatorpb.PrimeDecompositionResult{
+				Result: strconv.FormatInt(i, 10),
+			}
+			stream.Send(&result)
+			primeNumber = primeNumber / i
+		} else {
+			i++
+		}
+
+	}
+
+	return nil
 }
 
 func main() {

@@ -18,6 +18,19 @@ message CalculatorResult {
 }
 
 
+message PrimeDecompositionRequest {
+   int64 operator = 1;
+}
+
+message PrimeDecompositionResult {
+   string result = 1;
+}
+
+
 service CalculatorService{
+   //Unary
    rpc Add(CalculatorRequest) returns (CalculatorResult);
+
+   //Stream server
+   rpc PrimeDecomposition(PrimeDecompositionRequest) returns (stream PrimeDecompositionResult);
 }
