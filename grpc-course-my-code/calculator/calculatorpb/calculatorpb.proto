@@ -1,36 +1,34 @@
-syntax="proto3";
+syntax = "proto3";
 
 package calculatorpb;
 
-option go_package="./;calculatorpb";
+option go_package = "./;calculatorpb";
 
 message Operators {
-   int32 operatorA = 1;
-   int32 operatorB = 2;
+  int32 operatorA = 1;
+  int32 operatorB = 2;
 }
 
-message CalculatorRequest {
-   Operators operators = 1;
-}
+message CalculatorRequest { Operators operators = 1; }
 
-message CalculatorResult {
-   int64 result = 1;
-}
+message CalculatorResult { int64 result = 1; }
 
+message PrimeDecompositionRequest { int64 operator = 1; }
 
-message PrimeDecompositionRequest {
-   int64 operator = 1;
-}
+message PrimeDecompositionResult { string result = 1; }
 
-message PrimeDecompositionResult {
-   string result = 1;
-}
+message AverageRequest { int64 operator = 1; }
 
+message AverageResult { float result = 1; }
 
-service CalculatorService{
-   //Unary
-   rpc Add(CalculatorRequest) returns (CalculatorResult);
+service CalculatorService {
+  // Unary
+  rpc Add(CalculatorRequest) returns (CalculatorResult);
 
-   //Stream server
-   rpc PrimeDecomposition(PrimeDecompositionRequest) returns (stream PrimeDecompositionResult);
+  // Stream server
+  rpc PrimeDecomposition(PrimeDecompositionRequest)
+      returns (stream PrimeDecompositionResult);
+
+  // Client server
+  rpc Average(stream AverageRequest) returns (AverageResult);
 }

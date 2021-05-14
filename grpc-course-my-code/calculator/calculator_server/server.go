@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
 
 	"../calculatorpb"
+
 	"google.golang.org/grpc"
 )
 
@@ -43,6 +45,28 @@ func (*server) PrimeDecomposition(req *calculatorpb.PrimeDecompositionRequest, s
 	}
 
 	return nil
+}
+
+func (*server) Average(stream calculatorpb.CalculatorService_AverageServer) error {
+	fmt.Printf("Greet function was invoked with a client streaming request to calculagte average")
+	sum := int64(0)
+	qty := 0
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			result := float32(sum) / float32(qty)
+			return stream.SendAndClose(&calculatorpb.AverageResult{
+				Result: result,
+			})
+		}
+		if err != nil {
+			log.Fatalf("somthing was wrong: %v", err)
+		}
+		sum += req.GetOperator()
+		qty++
+	}
+
 }
 
 func main() {

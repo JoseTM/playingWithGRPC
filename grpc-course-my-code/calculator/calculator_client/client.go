@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"../calculatorpb"
+
 	"google.golang.org/grpc"
 )
 
@@ -24,6 +26,8 @@ func main() {
 	doUnary(c)
 
 	doServerStream(c)
+
+	doClientStream(c)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -60,5 +64,41 @@ func doServerStream(c calculatorpb.CalculatorServiceClient) {
 		}
 		fmt.Printf("factor: %s \n", msg.GetResult())
 	}
+
+}
+
+func doClientStream(c calculatorpb.CalculatorServiceClient) {
+
+	fmt.Printf("sending values to calculate average: \n")
+	requestList := []*calculatorpb.AverageRequest{
+		{
+			Operator: 100,
+		},
+		{
+			Operator: 50,
+		},
+		{
+			Operator: 25,
+		},
+	}
+	stream, err := c.Average(context.Background())
+	if err != nil {
+		log.Fatalf("could not connect %v", err)
+	}
+
+	for _, req := range requestList {
+		err := stream.Send(req)
+		fmt.Printf("value: %d \n", req.GetOperator())
+		if err != nil {
+			log.Fatalf("something was wrong with sending client stream")
+		}
+		time.Sleep(1000 * time.Millisecond)
+	}
+
+	msg, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("something was wrong with response")
+	}
+	fmt.Printf("average: %f \n", msg.GetResult())
 
 }
