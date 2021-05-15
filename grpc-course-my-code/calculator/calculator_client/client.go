@@ -28,6 +28,8 @@ func main() {
 	doServerStream(c)
 
 	doClientStream(c)
+
+	doBidirectionalStream(c)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -100,5 +102,67 @@ func doClientStream(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("something was wrong with response")
 	}
 	fmt.Printf("average: %f \n", msg.GetResult())
+
+}
+
+func doBidirectionalStream(c calculatorpb.CalculatorServiceClient) {
+
+	fmt.Printf("sending values to find maximum: \n")
+	requestList := []*calculatorpb.FindMaximumRequest{
+		{
+			Candidate: 50,
+		},
+		{
+			Candidate: 32,
+		},
+		{
+			Candidate: 100,
+		},
+		{
+			Candidate: 25,
+		},
+		{
+			Candidate: 220,
+		},
+		{
+			Candidate: 232,
+		},
+		{
+			Candidate: 25,
+		},
+	}
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("something was wrong with sending client stream")
+	}
+
+	waitChannel := make(chan struct{})
+	go func() {
+		for _, req := range requestList {
+			stream.Send(req)
+			fmt.Printf("Candidate: %d \t", req.GetCandidate())
+			if err != nil {
+				log.Fatalf("something was wrong with sending client stream")
+			}
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+
+	go func() {
+		for {
+			msg, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("something was wrong with response")
+			}
+			fmt.Printf("Maximum: %d \n", msg.GetResult())
+		}
+		close(waitChannel)
+	}()
+
+	<-waitChannel
 
 }

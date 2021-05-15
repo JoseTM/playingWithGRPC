@@ -21,14 +21,22 @@ message AverageRequest { int64 operator = 1; }
 
 message AverageResult { float result = 1; }
 
+message FindMaximumRequest { int64 candidate = 1; }
+
+message FindMaximumResult { int64 result = 1; }
+
 service CalculatorService {
   // Unary
-  rpc Add(CalculatorRequest) returns (CalculatorResult);
+  rpc Add(CalculatorRequest) returns (CalculatorResult) {};
 
   // Stream server
   rpc PrimeDecomposition(PrimeDecompositionRequest)
-      returns (stream PrimeDecompositionResult);
+      returns (stream PrimeDecompositionResult) {};
 
   // Client server
-  rpc Average(stream AverageRequest) returns (AverageResult);
+  rpc Average(stream AverageRequest) returns (AverageResult) {};
+
+  // Client server
+  rpc FindMaximum(stream FindMaximumRequest)
+      returns (stream FindMaximumResult) {};
 }

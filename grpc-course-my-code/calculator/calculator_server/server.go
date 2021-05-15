@@ -26,7 +26,8 @@ func (*server) Add(ctx context.Context, in *calculatorpb.CalculatorRequest) (*ca
 	return &result, nil
 }
 
-func (*server) PrimeDecomposition(req *calculatorpb.PrimeDecompositionRequest, stream calculatorpb.CalculatorService_PrimeDecompositionServer) error {
+func (*server) PrimeDecomposition(req *calculatorpb.PrimeDecompositionRequest,
+	stream calculatorpb.CalculatorService_PrimeDecompositionServer) error {
 	primeNumber := req.GetOperator()
 	fmt.Printf("prime decomposition in progress to %v \n", primeNumber)
 
@@ -48,7 +49,7 @@ func (*server) PrimeDecomposition(req *calculatorpb.PrimeDecompositionRequest, s
 }
 
 func (*server) Average(stream calculatorpb.CalculatorService_AverageServer) error {
-	fmt.Printf("Greet function was invoked with a client streaming request to calculagte average")
+	fmt.Printf("Gunction was invoked with a client streaming request to calculagte average")
 	sum := int64(0)
 	qty := 0
 
@@ -66,7 +67,30 @@ func (*server) Average(stream calculatorpb.CalculatorService_AverageServer) erro
 		sum += req.GetOperator()
 		qty++
 	}
+}
 
+func (*server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServer) error {
+	fmt.Printf("Function was invoked with a client streaming request to calculate Maximum")
+	max := int64(0)
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("somthing was wrong: %v", err)
+		}
+		if max < req.GetCandidate() {
+			max = req.GetCandidate()
+		}
+		errSend := stream.Send(&calculatorpb.FindMaximumResult{
+			Result: max,
+		})
+		if errSend != nil {
+			log.Fatalf("somthing was wrong: %v", errSend)
+			return errSend
+		}
+	}
 }
 
 func main() {
