@@ -8,6 +8,7 @@ import (
 	"math"
 	"net"
 	"strconv"
+	"time"
 
 	"../calculatorpb"
 
@@ -73,7 +74,7 @@ func (*server) Average(stream calculatorpb.CalculatorService_AverageServer) erro
 }
 
 func (*server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServer) error {
-	fmt.Printf("Function was invoked with a client streaming request to calculate Maximum")
+	fmt.Printf("Function was invoked with a client streaming request to calculate Maximum\n")
 	max := int64(0)
 	for {
 		req, err := stream.Recv()
@@ -90,15 +91,23 @@ func (*server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServ
 			Result: max,
 		})
 		if errSend != nil {
-			log.Fatalf("somthing was wrong: %v", errSend)
+			log.Fatalf("somthing was wrong: %v\n", errSend)
 			return errSend
 		}
 	}
 }
 
 func (*server) SquareRoot(ctx context.Context, in *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
-	fmt.Printf("adding operators %v \n", in.GetNumber())
+	fmt.Printf("square operator %v \n", in.GetNumber())
 	number := in.GetNumber()
+
+	for i := 0; i < 4; i++ {
+		if ctx.Err() == context.Canceled {
+			fmt.Println("cliente canceled request")
+			return nil, status.Error(codes.Canceled, "cancelado por el cliente, tiempo excedido")
+		}
+		time.Sleep(1000 * time.Millisecond)
+	}
 
 	if number < 0 {
 		return nil, status.Errorf(codes.InvalidArgument, "The argument must be > 0")

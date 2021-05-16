@@ -33,9 +33,13 @@ func main() {
 
 	doBidirectionalStream(c)
 
-	doErrors(c, 2)
+	doErrors(c, 2, 5000)
 
-	doErrors(c, -2)
+	doErrors(c, -2, 5000)
+
+	doErrors(c, 2, 1000)
+
+	doErrors(c, -2, 1000)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -173,23 +177,34 @@ func doBidirectionalStream(c calculatorpb.CalculatorServiceClient) {
 
 }
 
-func doErrors(c calculatorpb.CalculatorServiceClient, number int32) {
+func doErrors(c calculatorpb.CalculatorServiceClient, number int32, timeout int32) {
 	req := calculatorpb.SquareRootRequest{
 		Number: number,
 	}
-	result, err := c.SquareRoot(context.Background(), &req)
+
+	cientDeadLine := time.Now().Add(time.Duration(timeout) * time.Millisecond)
+	ctx, cancel := context.WithDeadline(context.Background(), cientDeadLine)
+	defer cancel()
+
+	result, err := c.SquareRoot(ctx, &req)
 	if err != nil {
 		respErr, ok := status.FromError(err)
 		if ok {
 			fmt.Println(respErr.Message())
 			fmt.Println(respErr.Code())
 			if respErr.Code() == codes.InvalidArgument {
-				fmt.Printf("we sent an invalid argment probably a negative one")
+				fmt.Printf("we sent an invalid argment probably a negative one \n")
+			}
+			if respErr.Code() == codes.DeadlineExceeded {
+				fmt.Printf("server exceed deadline \n")
+			}
+			if respErr.Code() == codes.Canceled {
+				fmt.Printf("client cancelled \n")
 			}
 		} else {
-			log.Fatalf("could not connect %v", err)
+			log.Fatalf("could not connect %v \n", err)
 		}
-
+		return
 	}
 	fmt.Printf("square of %v = %v \n", req.GetNumber(), result.GetSquareRoot())
 }
