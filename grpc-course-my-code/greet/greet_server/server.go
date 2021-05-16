@@ -12,6 +12,7 @@ import (
 	"../greetpb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type server struct{}
@@ -88,12 +89,19 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 func main() {
 	fmt.Println("Hello world")
 
+	certFile := "ssl/server.crt"
+	keyFile := "ssl/server.pem"
+	creds, errCert := credentials.NewServerTLSFromFile(certFile, keyFile)
+	if errCert != nil {
+		log.Fatalf("certificate fail %v\n", errCert)
+	}
+
 	lis, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.Creds(creds))
 	greetpb.RegisterGreetServiceServer(s, &server{})
 
 	if err := s.Serve(lis); err != nil {

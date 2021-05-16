@@ -10,6 +10,7 @@ import (
 	"../greetpb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type client struct{}
@@ -17,7 +18,13 @@ type client struct{}
 func main() {
 	// fmt.Println("Hello world")
 
-	cc, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	certFile := "ssl/ca.crt"
+	creds, errCert := credentials.NewClientTLSFromFile(certFile, "")
+	if errCert != nil {
+		log.Fatalf("certificate fail %v\n", errCert)
+	}
+
+	cc, err := grpc.Dial("localhost:50051", grpc.WithTransportCredentials(creds))
 
 	if err != nil {
 		log.Fatalf("could not connect %v", err)
@@ -29,9 +36,9 @@ func main() {
 	//fmt.Printf("create4d client: %f", c)
 
 	myClient := client{}
-	/* 	myClient.doUnary(c)
-	   	myClient.doServerStream(c)
-	   	myClient.doClientStream(c) */
+	myClient.doUnary(c)
+	myClient.doServerStream(c)
+	myClient.doClientStream(c)
 	myClient.doBiStream(c)
 
 }
