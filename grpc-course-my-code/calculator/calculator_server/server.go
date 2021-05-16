@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net"
 	"strconv"
 
 	"../calculatorpb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct{}
@@ -91,6 +94,22 @@ func (*server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServ
 			return errSend
 		}
 	}
+}
+
+func (*server) SquareRoot(ctx context.Context, in *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	fmt.Printf("adding operators %v \n", in.GetNumber())
+	number := in.GetNumber()
+
+	if number < 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "The argument must be > 0")
+	}
+
+	result := calculatorpb.SquareRootResponse{
+		SquareRoot: math.Sqrt(float64(number)),
+	}
+
+	return &result, nil
+
 }
 
 func main() {

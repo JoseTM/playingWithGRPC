@@ -10,6 +10,8 @@ import (
 	"../calculatorpb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func main() {
@@ -30,6 +32,10 @@ func main() {
 	doClientStream(c)
 
 	doBidirectionalStream(c)
+
+	doErrors(c, 2)
+
+	doErrors(c, -2)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -165,4 +171,25 @@ func doBidirectionalStream(c calculatorpb.CalculatorServiceClient) {
 
 	<-waitChannel
 
+}
+
+func doErrors(c calculatorpb.CalculatorServiceClient, number int32) {
+	req := calculatorpb.SquareRootRequest{
+		Number: number,
+	}
+	result, err := c.SquareRoot(context.Background(), &req)
+	if err != nil {
+		respErr, ok := status.FromError(err)
+		if ok {
+			fmt.Println(respErr.Message())
+			fmt.Println(respErr.Code())
+			if respErr.Code() == codes.InvalidArgument {
+				fmt.Printf("we sent an invalid argment probably a negative one")
+			}
+		} else {
+			log.Fatalf("could not connect %v", err)
+		}
+
+	}
+	fmt.Printf("square of %v = %v \n", req.GetNumber(), result.GetSquareRoot())
 }
