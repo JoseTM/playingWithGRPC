@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
 	"../blogpb"
@@ -233,6 +234,9 @@ func main() {
 
 	s := grpc.NewServer(opts...)
 	blogpb.RegisterBlogServiceServer(s, &server{})
+
+	//Register Reflection
+	reflection.Register(s)
 
 	go func() {
 		fmt.Println("starting Server ...")
